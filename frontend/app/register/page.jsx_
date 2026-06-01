@@ -1,0 +1,136 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+
+import { useAuth } from "@/context/AuthContext";
+
+export default function RegisterPage() {
+  const { register, error, clearError } = useAuth();
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("employee");
+  const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+
+  const onSubmit = async (event) => {
+    event.preventDefault();
+    clearError();
+    setFormError(null);
+    setSuccessMessage(null);
+
+    if (fullName.trim().length < 2) {
+      setFormError("Full name must be at least 2 characters.");
+      return;
+    }
+
+    if (!email.includes("@")) {
+      setFormError("Please enter a valid email address.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setFormError("Password must be at least 8 characters.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const message = await register({
+        full_name: fullName.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+        role,
+      });
+      setSuccessMessage(message || "Account created successfully!");
+      setFullName("");
+      setEmail("");
+      setPassword("");
+      setRole("employee");
+    } catch {
+      // Error handled in AuthContext
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <main className="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-10">
+      <section className="w-full rounded-2xl border border-white/10 bg-slate-900/70 p-6 shadow-xl">
+        <h1 className="text-2xl font-semibold text-white">Create account</h1>
+        <p className="mt-2 text-sm text-slate-300">Start practicing interviews with AI feedback.</p>
+
+        <form className="mt-6 space-y-4" onSubmit={onSubmit}>
+          <label className="block">
+            <span className="mb-1 block text-sm text-slate-200">Full name</span>
+            <input
+              type="text"
+              value={fullName}
+              onChange={(event) => setFullName(event.target.value)}
+              className="w-full rounded-md border border-white/15 bg-slate-950 px-3 py-2 text-sm text-white outline-none ring-cyan-300/40 transition focus:ring-2"
+              placeholder="Alex Smith"
+              required
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm text-slate-200">Email</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="w-full rounded-md border border-white/15 bg-slate-950 px-3 py-2 text-sm text-white outline-none ring-cyan-300/40 transition focus:ring-2"
+              placeholder="you@example.com"
+              required
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm text-slate-200">Password</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="w-full rounded-md border border-white/15 bg-slate-950 px-3 py-2 text-sm text-white outline-none ring-cyan-300/40 transition focus:ring-2"
+              placeholder="At least 8 characters"
+              required
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm text-slate-200">Role</span>
+            <select
+              value={role}
+              onChange={(event) => setRole(event.target.value)}
+              className="w-full rounded-md border border-white/15 bg-slate-950 px-3 py-2 text-sm text-white outline-none ring-cyan-300/40 transition focus:ring-2"
+            >
+              <option value="recruiter">Recruiter</option>
+              <option value="employee">Employee</option>
+            </select>
+          </label>
+
+          {(formError || error) && <p className="text-sm text-rose-300">{formError || error}</p>}
+          {successMessage && <p className="text-sm text-emerald-300">{successMessage}</p>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-md bg-cyan-500 px-4 py-2 font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading ? "Creating account..." : "Register"}
+          </button>
+        </form>
+
+        <p className="mt-4 text-sm text-slate-300">
+          Already have an account?{" "}
+          <Link href="/login" className="text-cyan-300 hover:text-cyan-200">
+            Login
+          </Link>
+        </p>
+      </section>
+    </main>
+  );
+}
+
