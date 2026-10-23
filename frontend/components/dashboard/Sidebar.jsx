@@ -1,5 +1,7 @@
 "use client";
 
+import { useTokens } from "@/hooks/useTokens";
+import TokenBadge from "@/components/TokenBadge";
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
@@ -51,19 +53,20 @@ function NavItem({ href, icon: Icon, label, active, onClick, collapsed }) {
 export default function Sidebar({ onStartInterview }) {
   const pathname = usePathname();
   const { signOut } = useClerk();
+  const { tokens, loading: tokensLoading } = useTokens();
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
   const close = () => setOpen(false);
 
-  const content = (onClick, collapsed = false) => (
+  const content = (onClick, collapsedState = false) => (
     <div className="flex h-full flex-col">
       {/* Brand */}
-      <div className={`mb-6 flex items-center gap-3 px-3 ${collapsed ? 'justify-center' : ''}`}>
+      <div className={`mb-6 flex items-center gap-3 px-3 ${collapsedState ? 'justify-center' : ''}`}>
         <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold transition-all duration-200">
           I
         </div>
-        {!collapsed && (
+        {!collapsedState && (
           <div>
             <p className="text-sm font-semibold text-white">IntervieTA</p>
             <p className="text-xs text-white/40">AI Interview System</p>
@@ -72,9 +75,9 @@ export default function Sidebar({ onStartInterview }) {
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="ml-auto rounded-lg p-1 text-white/40 hover:bg-white/5 hover:text-white transition-all duration-200"
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsedState ? "Expand sidebar" : "Collapse sidebar"}
         >
-          <ChevronLeft className={`h-4 w-4 transition-transform duration-200 ${collapsed ? 'rotate-180' : ''}`} />
+          <ChevronLeft className={`h-4 w-4 transition-transform duration-200 ${collapsedState ? 'rotate-180' : ''}`} />
         </button>
       </div>
 
@@ -86,7 +89,7 @@ export default function Sidebar({ onStartInterview }) {
             {...item}
             active={pathname === item.href}
             onClick={onClick}
-            collapsed={collapsed}
+            collapsed={collapsedState}
           />
         ))}
 
@@ -96,30 +99,38 @@ export default function Sidebar({ onStartInterview }) {
             onStartInterview?.();
             onClick?.();
           }}
-          className={`group flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200 ease-out text-white/60 hover:bg-white/5 hover:text-white ${collapsed ? 'justify-center px-2' : ''}`}
-          title={collapsed ? "Start interview" : undefined}
+          className={`group flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200 ease-out text-white/60 hover:bg-white/5 hover:text-white ${collapsedState ? 'justify-center px-2' : ''}`}
+          title={collapsedState ? "Start interview" : undefined}
         >
           <PlayCircle
             className="h-4 w-4 text-white/40 group-hover:text-white transition-all duration-200"
             strokeWidth={1.8}
           />
-          {!collapsed && <span className="truncate">Start interview</span>}
+          {!collapsedState && <span className="truncate">Start interview</span>}
         </button>
       </div>
 
       {/* Bottom */}
       <div className="mt-auto">
         <div className="my-4 border-t border-white/10" />
+
+        {/* Token badge — hidden when collapsed */}
+        {!collapsedState && (
+          <div className="mb-4 rounded-xl border border-white/10 bg-white/5 px-3 py-3">
+            <TokenBadge tokens={tokens} loading={tokensLoading} compact />
+          </div>
+        )}
+
         <button
           onClick={() => {
             signOut({ redirectUrl: "/" });
             onClick?.();
           }}
-          className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-white/40 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200 ${collapsed ? 'justify-center' : ''}`}
-          title={collapsed ? "Logout" : undefined}
+          className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-white/40 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200 ${collapsedState ? 'justify-center' : ''}`}
+          title={collapsedState ? "Logout" : undefined}
         >
           <LogOut className="h-4 w-4" />
-          {!collapsed && <span>Logout</span>}
+          {!collapsedState && <span>Logout</span>}
         </button>
       </div>
     </div>
@@ -131,7 +142,7 @@ export default function Sidebar({ onStartInterview }) {
       <aside className={`fixed left-0 top-0 h-screen border-r border-white/10 bg-[#0b0f17] transition-all duration-300 ease-out hidden lg:flex p-3 ${
         collapsed ? 'w-16' : 'w-60'
       }`}>
-        {content()}
+        {content(undefined, collapsed)}
       </aside>
 
       {/* Mobile top bar */}
@@ -170,7 +181,7 @@ export default function Sidebar({ onStartInterview }) {
         >
           <X className="h-4 w-4" />
         </button>
-        {content(close)}
+        {content(close, collapsed)}
       </aside>
     </>
   );

@@ -1,7 +1,10 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.database import get_db, client
+from app.routes.interview import router as interview_router
 from contextlib import asynccontextmanager
+from app.routes.avatar import router as avatar_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -25,6 +28,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+app.include_router(interview_router)
+app.include_router(avatar_router)
 
 @app.get("/")
 async def root():
